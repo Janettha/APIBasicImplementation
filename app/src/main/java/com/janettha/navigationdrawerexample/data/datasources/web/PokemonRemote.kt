@@ -11,6 +11,7 @@ import com.janettha.navigationdrawerexample.sys.framework.retrofit_flow_adapter.
 import com.janettha.navigationdrawerexample.sys.framework.retrofit_flow_adapter.ApiNullBodyException
 import com.janettha.navigationdrawerexample.sys.framework.retrofit_flow_adapter.ApiServerException
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 
 class PokemonRemote (
@@ -23,14 +24,18 @@ class PokemonRemote (
         params.addToBody(request)
 
         return webService.getPokemonList(params).map { response ->
-            try {
-                Resource.Success(response.data)
-            } catch (_: ApiNoInternetException) {
-                Resource.Error(TextResource.Resource(R.string.error_could_not_reach_server))
-            } catch (_: ApiServerException) {
-                Resource.Error(TextResource.Resource(R.string.error_could_not_reach_server))
-            } catch (_: ApiNullBodyException) {
-                Resource.Error(TextResource.Resource(R.string.error_something_went_wrong))
+            Resource.Success(response.data)
+        }.catch {
+            when(it) {
+                is ApiNoInternetException -> Resource.Error<TextResource.Resource>(
+                    TextResource.Resource(R.string.error_could_not_reach_server)
+                )
+                is ApiServerException -> Resource.Error<TextResource.Resource>(
+                    TextResource.Resource(R.string.error_could_not_reach_server)
+                )
+                is ApiNullBodyException -> Resource.Error<TextResource.Resource>(
+                    TextResource.Resource(R.string.error_something_went_wrong)
+                )
             }
         }
     }

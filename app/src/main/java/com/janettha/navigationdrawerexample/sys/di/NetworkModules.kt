@@ -1,11 +1,14 @@
 package com.janettha.navigationdrawerexample.sys.di
 
 import android.provider.SyncStateContract
+import android.util.Log
 import com.google.gson.GsonBuilder
 import com.janettha.navigationdrawerexample.data.datasources.web.api.WebService
 import com.janettha.navigationdrawerexample.sys.config.Constants
 import com.janettha.navigationdrawerexample.sys.framework.retrofit_flow_adapter.FlowResponseCallAdapterFactory
 import com.janettha.navigationdrawerexample.sys.framework.retrofit_flow_adapter.LiveDataCallAdapterFactory
+import com.janettha.navigationdrawerexample.sys.util.reactive.RxBus
+import com.janettha.navigationdrawerexample.sys.util.reactive.events.RxHomeFragment
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.dsl.module
@@ -19,7 +22,7 @@ class NetworkModules {
 
         val modules = module {
 
-            //factory { provideLoggingInterceptor() }
+            factory { provideLoggingInterceptor() }
 
             //factory { AuthInterceptor(get()) }
 
@@ -29,6 +32,16 @@ class NetworkModules {
 
             single { provideWebService(get()) }
 
+        }
+
+        private fun provideLoggingInterceptor(): HttpLoggingInterceptor {
+            return HttpLoggingInterceptor { message ->
+                Log.d("NetworkModule", "Retrofit: >> $message")
+
+                //@Suppress("ConstantConditionIf")
+                RxBus.post(RxHomeFragment.EventOnNewCallToRetrofit(message))
+
+            }.apply { level = HttpLoggingInterceptor.Level.BODY }
         }
 
         private fun provideHttpClient(

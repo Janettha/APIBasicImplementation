@@ -34,7 +34,7 @@ class HomeViewModel(
 
     fun getPokemonList() {
         viewModelScope.launch(Dispatchers.IO) {
-            useCases.pokemonListUseCase(0, 0).collectLatest { resource ->
+            useCases.pokemonListUseCase(0, 20).collectLatest { resource ->
                 when(resource) {
                     is Resource.Error -> {
                         viewModelScope.launch(Dispatchers.IO) {

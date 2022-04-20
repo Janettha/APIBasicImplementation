@@ -29,7 +29,9 @@ class MainApplication: Application() {
                     ViewModelModules.module,
                     RepositoryModules.module,
                     NetworkModules.modules,
-                    DataSourceModules.modules
+                    DataSourceModules.modules,
+                    IteratorModules.modules,
+                    UseCasesModules.modules
                 )
             )
         }
