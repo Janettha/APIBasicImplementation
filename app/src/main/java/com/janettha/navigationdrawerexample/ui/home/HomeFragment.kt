@@ -13,6 +13,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.snackbar.Snackbar
 import com.janettha.navigationdrawerexample.R
 import com.janettha.navigationdrawerexample.data.datasources.web.dto.response.GetPokemonListDtoResponse
+import com.janettha.navigationdrawerexample.data.datasources.web.dto.response.ItemPokemon
 import com.janettha.navigationdrawerexample.databinding.FragmentHomeBinding
 import com.janettha.navigationdrawerexample.sys.util.reactive.RxBus
 import com.janettha.navigationdrawerexample.sys.util.reactive.events.RxHomeFragment
@@ -75,12 +76,7 @@ class HomeFragment : Fragment() {
                 /**
                  * [dataPokemonList]
                  */
-                launch {
-                    viewModel.dataPokemonList.collectLatest { list ->
-                        Log.d(mTag, "dataPokemonList: ${list.size}")
-                        dataPokemonList(list)
-                    }
-                }
+
                 // endregion
 
                 // region EVENTS
@@ -100,7 +96,7 @@ class HomeFragment : Fragment() {
     // region:: PRIVATE METHODS
 
     // region:: DATA
-    private fun dataPokemonList(list: List<GetPokemonListDtoResponse.ItemPokemon>) {
+    private fun dataPokemonList(list: List<ItemPokemon>) {
         Log.d(mTag, "dataPokemonList: ${list.size}")
     }
     // endregion

@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.janettha.navigationdrawerexample.core.data.Resource
 import com.janettha.navigationdrawerexample.data.datasources.web.dto.response.GetPokemonListDtoResponse
+import com.janettha.navigationdrawerexample.data.datasources.web.dto.response.ItemPokemon
 import com.janettha.navigationdrawerexample.domain.use_cases.HomeUseCases
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -24,7 +25,7 @@ class HomeViewModel(
     private val _dataPreviousPage = MutableStateFlow<String>("")
     val dataPreviousPage = _dataPreviousPage.asSharedFlow()
 
-    private val _dataPokemonList = MutableStateFlow<List<GetPokemonListDtoResponse.ItemPokemon>>(listOf())
+    private val _dataPokemonList = MutableStateFlow<List<ItemPokemon>>(listOf())
     val dataPokemonList = _dataPokemonList.asSharedFlow()
 
     private val _text = MutableLiveData<String>().apply {
