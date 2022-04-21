@@ -14,6 +14,10 @@ import com.google.android.material.snackbar.Snackbar
 import com.janettha.navigationdrawerexample.R
 import com.janettha.navigationdrawerexample.data.datasources.web.dto.response.GetPokemonListDtoResponse
 import com.janettha.navigationdrawerexample.databinding.FragmentHomeBinding
+import com.janettha.navigationdrawerexample.sys.util.reactive.RxBus
+import com.janettha.navigationdrawerexample.sys.util.reactive.events.RxHomeFragment
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -27,9 +31,10 @@ class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null
 
-    // This property is only valid between onCreateView and
-    // onDestroyView.
+    // This property is only valid between onCreateView and onDestroyView.
     private val binding get() = _binding!!
+
+    private var eventOnNewCallToRetrofit: Disposable? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -46,10 +51,21 @@ class HomeFragment : Fragment() {
             textView.text = it
         }
 
+        // listen to RX events
+        listenToEvents()
+
         viewModel.getPokemonList()
         subscribeStreamsToObserve()
 
         return root
+    }
+
+    private fun listenToEvents() {
+        eventOnNewCallToRetrofit = RxBus.subscribe<RxHomeFragment.EventOnNewCallToRetrofit>()
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe {
+                Log.d(mTag, "listenToEvents: ${it.message}")
+            }
     }
 
     private fun subscribeStreamsToObserve() {

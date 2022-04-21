@@ -34,6 +34,7 @@ android {
     buildTypes {
         release {
             minifyEnabled false
+            debuggable true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -91,6 +92,10 @@ dependencies {
     implementation 'com.squareup.okhttp3:logging-interceptor:3.9.1'
     // Volley
     implementation 'com.android.volley:volley:1.2.1'
+
+    /** REACTIVE PROGRAMING LIBRARIES **/
+    // RxAndroid
+    implementation "io.reactivex.rxjava2:rxandroid:2.0.2"
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
