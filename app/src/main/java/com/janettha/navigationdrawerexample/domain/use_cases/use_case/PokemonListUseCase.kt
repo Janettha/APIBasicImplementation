@@ -1,5 +1,6 @@
 package com.janettha.navigationdrawerexample.domain.use_cases.use_case
 
+import android.util.Log
 import com.janettha.navigationdrawerexample.core.data.Resource
 import com.janettha.navigationdrawerexample.core.util.TextResource
 import com.janettha.navigationdrawerexample.data.PokemonEntity
@@ -12,7 +13,8 @@ class PokemonListUseCase(
 ) {
 
     suspend operator fun invoke(offset: Int?, limit: Int?): Flow<Resource<PokemonEntity>> {
-        return when (val response = repository.getPokemonList(offset, limit)) {
+        Log.d("Pokemon", "PokemonListUseCase, invoke: getPokemonList")
+        return when (val response = repository.getPokemonListFlow(offset, limit)) {
             is Resource.Success<*> -> {
                 flow { Resource.Success(response.data) }
             }

@@ -2,6 +2,7 @@ package com.janettha.navigationdrawerexample.core.mappers
 
 import com.janettha.navigationdrawerexample.data.PokemonEntity
 import com.janettha.navigationdrawerexample.data.datasources.web.dto.response.GetPokemonListDtoResponse
+import com.janettha.navigationdrawerexample.data.datasources.web.dto.response.ItemPokemon
 
 class PokemonMapper {
 
@@ -13,7 +14,7 @@ class PokemonMapper {
                 this.next,
                 this.previous,
                 results!!.map {
-                    GetPokemonListDtoResponse.ItemPokemon(
+                    ItemPokemon(
                         it.name,
                         it.url
                     )

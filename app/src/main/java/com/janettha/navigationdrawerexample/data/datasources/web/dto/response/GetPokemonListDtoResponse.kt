@@ -1,29 +1,19 @@
 package com.janettha.navigationdrawerexample.data.datasources.web.dto.response
 
-import android.os.Parcelable
 import com.google.gson.annotations.Expose
-import com.janettha.navigationdrawerexample.data.datasources.web.responses.OnGetPokemonResponse
-//import kotlinx.android.parcel.IgnoredOnParcel
-import kotlinx.android.parcel.Parcelize
+import com.google.gson.annotations.SerializedName
 
-@Parcelize
 data class GetPokemonListDtoResponse(
     @Expose
+    @SerializedName("count")
     val count: Int?,
     @Expose
+    @SerializedName("next")
     val next: String?,
     @Expose
+    @SerializedName("previous")
     val previous: String?,
     @Expose
+    @SerializedName("results")
     val results: List<ItemPokemon>?
-) : Parcelable {
-
-    @Parcelize
-    data class ItemPokemon(
-        @Expose
-        val name: String?,
-        @Expose
-        val url: String?
-    ) : Parcelable
-
-}
+)

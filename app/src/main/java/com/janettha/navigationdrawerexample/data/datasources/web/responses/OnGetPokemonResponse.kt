@@ -19,7 +19,6 @@ data class OnGetPokemonResponse(
     val previous: String?,
     @SerializedName("results")
     @Expose
-    @IgnoredOnParcel
     val results: List<ItemPokemon>?
 ) : Parcelable {
 

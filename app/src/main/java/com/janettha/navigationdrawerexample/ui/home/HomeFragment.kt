@@ -5,21 +5,13 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.snackbar.Snackbar
 import com.janettha.navigationdrawerexample.R
+import com.janettha.navigationdrawerexample.data.datasources.web.dto.response.*
 import com.janettha.navigationdrawerexample.data.datasources.web.dto.response.GetPokemonListDtoResponse
 import com.janettha.navigationdrawerexample.databinding.FragmentHomeBinding
-import com.janettha.navigationdrawerexample.sys.util.reactive.RxBus
-import com.janettha.navigationdrawerexample.sys.util.reactive.events.RxHomeFragment
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class HomeFragment : Fragment() {
@@ -36,6 +28,8 @@ class HomeFragment : Fragment() {
 
     private var eventOnNewCallToRetrofit: Disposable? = null
 
+    //private val textView: TextView
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -46,20 +40,45 @@ class HomeFragment : Fragment() {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val textView: TextView = binding.textHome
-        viewModel.text.observe(viewLifecycleOwner) {
+        //textView = binding.textHome
+        /*viewModel.text.observe(viewLifecycleOwner) {
             textView.text = it
-        }
+        }*/
 
         // listen to RX events
-        listenToEvents()
+        //listenToEvents()
 
-        viewModel.getPokemonList()
-        subscribeStreamsToObserve()
+        viewModel.loadPokemonList()
+        //subscribeStreamsToObserve()
+        observeReactiveStreams()
 
         return root
     }
 
+    private fun observeReactiveStreams() {
+        // region:: EVENTS
+        /**
+         * [eventOnDownloadFailure]
+         */
+        viewModel.eventOnDownloadFailure.observe(viewLifecycleOwner) {
+            eventOnDownloadFailure()
+        }
+        // endregion
+
+        // region: DATA
+        /**
+         * [dataLoadPokemonList]
+         */
+        viewModel.dataLoadPokemonList.observe(viewLifecycleOwner) { response ->
+            if (response != null) {
+                dataLoadPokemonList(response)
+            }
+        }
+        // endregion
+    }
+
+    // region TODO: FLOW
+    /*
     private fun listenToEvents() {
         eventOnNewCallToRetrofit = RxBus.subscribe<RxHomeFragment.EventOnNewCallToRetrofit>()
             .observeOn(AndroidSchedulers.mainThread())
@@ -67,7 +86,9 @@ class HomeFragment : Fragment() {
                 Log.d(mTag, "listenToEvents: ${it.message}")
             }
     }
+    */
 
+    /*
     private fun subscribeStreamsToObserve() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -76,7 +97,7 @@ class HomeFragment : Fragment() {
                  * [dataPokemonList]
                  */
                 launch {
-                    viewModel.dataPokemonList.collectLatest { list ->
+                    viewModel.dataPokemonListFlow.collectLatest { list ->
                         Log.d(mTag, "dataPokemonList: ${list.size}")
                         dataPokemonList(list)
                     }
@@ -96,12 +117,19 @@ class HomeFragment : Fragment() {
             }
         }
     }
+    */
+    // endregion
 
     // region:: PRIVATE METHODS
 
     // region:: DATA
-    private fun dataPokemonList(list: List<GetPokemonListDtoResponse.ItemPokemon>) {
+    private fun dataPokemonList(list: List<ItemPokemon>) {
         Log.d(mTag, "dataPokemonList: ${list.size}")
+    }
+
+    private fun dataLoadPokemonList(response: GetPokemonListDtoResponse) {
+        Log.d(mTag, "observeReactiveStreams: ${response.results?.size}")
+        binding.textHome.text = "Total size: ${response.results?.size}"
     }
     // endregion
 
@@ -113,7 +141,20 @@ class HomeFragment : Fragment() {
             Snackbar.LENGTH_LONG
         ).apply {
             setAction(R.string.ok) {
-                viewModel.getPokemonList()
+                //viewModel.getPokemonListFill()
+                dismiss()
+            }
+        }.show()
+    }
+
+    private fun eventOnDownloadFailure(){
+        Snackbar.make(
+            binding.root,
+            R.string.error_something_went_wrong,
+            Snackbar.LENGTH_LONG
+        ).apply {
+            setAction(R.string.ok) {
+                viewModel.loadPokemonList()
                 dismiss()
             }
         }.show()

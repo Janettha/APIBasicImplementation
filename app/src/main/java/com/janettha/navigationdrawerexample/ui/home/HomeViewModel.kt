@@ -1,20 +1,21 @@
 package com.janettha.navigationdrawerexample.ui.home
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.janettha.navigationdrawerexample.core.data.Resource
+import androidx.databinding.ObservableField
+import androidx.lifecycle.*
 import com.janettha.navigationdrawerexample.data.datasources.web.dto.response.GetPokemonListDtoResponse
+import com.janettha.navigationdrawerexample.domain.interators.PokemonListUseCases
 import com.janettha.navigationdrawerexample.domain.use_cases.HomeUseCases
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
+import com.janettha.navigationdrawerexample.sys.util.common.NetworkState
+import com.janettha.navigationdrawerexample.sys.util.reactive.SingleLiveEvent
+import com.janettha.navigationdrawerexample.ui.home.HomeStates.State
 
 class HomeViewModel(
-    private val useCases: HomeUseCases
+    //private val useCases: HomeUseCases,
+    private val pokemonListUseCases: PokemonListUseCases
 ) : ViewModel() {
+    private val mTag = HomeViewModel::class.simpleName
 
+    /* region :: Flow method
     private val _onPokemonListFailure = MutableSharedFlow<Unit>()
     val onPokemonListFailure = _onPokemonListFailure.asSharedFlow()
 
@@ -33,25 +34,58 @@ class HomeViewModel(
     val text: LiveData<String> = _text
 
     fun getPokemonList() {
+        Log.d("Pokemon", "HomeViewModel, getPokemonList")
         viewModelScope.launch(Dispatchers.IO) {
-            useCases.pokemonListUseCase(0, 20).collectLatest { resource ->
+            useCases.pokemonListUseCase(0, 0).collectLatest { resource ->
                 when(resource) {
                     is Resource.Error -> {
-                        viewModelScope.launch(Dispatchers.IO) {
-                            _onPokemonListFailure.emit(Unit)
-                        }
+                        Log.d(mTag, "ViewModel: Error: getPokemonList")
+                        _onPokemonListFailure.emit(Unit)
                     }
 
                     is Resource.Success -> {
-                        viewModelScope.launch(Dispatchers.IO) {
-                            if(resource.data?.next.isNullOrEmpty())
-                                _dataNextPage.emit(resource.data?.next.toString())
-                            if(resource.data?.previous.isNullOrEmpty())
-                                _dataPreviousPage.emit(resource.data?.previous.toString())
-                            if(resource.data?.results!!.isEmpty().not())
-                                _dataPokemonList.emit(resource.data.results)
-                        }
+                        Log.d(mTag, "ViewModel: Success: getPokemonList")
+                        if(resource.data?.next.isNullOrEmpty())
+                            _dataNextPage.emit(resource.data?.next.toString())
+                        if(resource.data?.previous.isNullOrEmpty())
+                            _dataPreviousPage.emit(resource.data?.previous.toString())
+                        if(resource.data?.results!!.isEmpty().not())
+                            _dataPokemonList.emit(resource.data.results)
                     }
+                }
+            }
+        }
+    }
+    */
+
+    val viewState: ObservableField<State> =
+        ObservableField(State.Loading)
+
+    /**
+     * When start view -> get pokemon list
+     */
+    private val _dataLoadPokemonList: MediatorLiveData<GetPokemonListDtoResponse> = MediatorLiveData()
+    internal val dataLoadPokemonList: LiveData<GetPokemonListDtoResponse> = _dataLoadPokemonList
+    internal val eventOnDownloadFailure = SingleLiveEvent.EmptyEvent()
+
+    internal fun loadPokemonList(offset: Int = 0, limit: Int = 0) {
+        //if (_dataLoadPokemonList.holdValue() && !refresh) return
+
+        val source = pokemonListUseCases.downloadPokemonList(offset, limit)
+
+        _dataLoadPokemonList.addSource(source) {
+            when (it) {
+                is NetworkState.Loading -> {
+                    viewState.set(State.Loading)
+                }
+                is NetworkState.Loaded -> {
+                    viewState.set(State.Loaded)
+                    _dataLoadPokemonList.value = it.data!!
+                }
+                is NetworkState.Error,
+                is NetworkState.Empty -> {
+                    viewState.set(State.Error)
+                    eventOnDownloadFailure.call()
                 }
             }
         }

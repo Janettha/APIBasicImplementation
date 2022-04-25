@@ -1,8 +1,8 @@
 package com.janettha.navigationdrawerexample.sys.di
 
-import android.provider.SyncStateContract
 import android.util.Log
 import com.google.gson.GsonBuilder
+import com.janettha.navigationdrawerexample.data.datasources.web.api.AuthInterceptor
 import com.janettha.navigationdrawerexample.data.datasources.web.api.WebService
 import com.janettha.navigationdrawerexample.sys.config.Constants
 import com.janettha.navigationdrawerexample.sys.framework.retrofit_flow_adapter.FlowResponseCallAdapterFactory
@@ -24,9 +24,9 @@ class NetworkModules {
 
             factory { provideLoggingInterceptor() }
 
-            //factory { AuthInterceptor(get()) }
+            factory { AuthInterceptor() }
 
-            factory { provideHttpClient(get()) }
+            factory { provideHttpClient(get(), get()) }
 
             factory { provideRetrofit(get()) }
 
@@ -39,20 +39,23 @@ class NetworkModules {
                 Log.d("NetworkModule", "Retrofit: >> $message")
 
                 //@Suppress("ConstantConditionIf")
-                RxBus.post(RxHomeFragment.EventOnNewCallToRetrofit(message))
+                //RxBus.post(RxHomeFragment.EventOnNewCallToRetrofit(message))
 
             }.apply { level = HttpLoggingInterceptor.Level.BODY }
         }
 
+        private val loggingInterceptor =
+            HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY}
+
         private fun provideHttpClient(
-            logInterceptor: HttpLoggingInterceptor
-            //, authInterceptor: AuthInterceptor
+            logInterceptor: HttpLoggingInterceptor,
+            authInterceptor: AuthInterceptor
         ): OkHttpClient {
             return OkHttpClient.Builder()
-                .connectTimeout(Constants.Web.CONNECT_TIMEOUT, TimeUnit.SECONDS)
-                .writeTimeout(Constants.Web.WRITE_TIMEOUT, TimeUnit.SECONDS)
-                .readTimeout(Constants.Web.READ_TIMEOUT, TimeUnit.SECONDS)
-                .addInterceptor(logInterceptor)
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .addInterceptor(loggingInterceptor)
                 //.addInterceptor(authInterceptor)
                 .build()
         }

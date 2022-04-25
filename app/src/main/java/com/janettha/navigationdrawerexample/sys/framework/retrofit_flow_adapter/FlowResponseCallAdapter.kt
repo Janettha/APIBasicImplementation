@@ -36,13 +36,13 @@ class FlowResponseCallAdapter<T>(
 
                         override fun onResponse(call: Call<T>, response: Response<T>) {
                             try {
-                                val gripBody = response.body() as? ApiResponse<*>
+                                val body = response.body() as? ApiResponse<*>
 
-                                if (gripBody == null)
+                                if (body == null)
                                     continuation.resumeWithException(ApiNullBodyException())
 
                                 if (response.isSuccessful.not() ||
-                                    gripBody?.isSuccessful()?.not() == true
+                                    body?.isSuccessful()?.not() == true
                                 )
                                     continuation.resumeWithException(ApiServerException())
 
