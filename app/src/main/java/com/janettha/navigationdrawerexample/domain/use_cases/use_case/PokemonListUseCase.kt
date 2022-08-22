@@ -1,27 +1,25 @@
 package com.janettha.navigationdrawerexample.domain.use_cases.use_case
 
+import com.janettha.navigationdrawerexample.R
 import com.janettha.navigationdrawerexample.core.data.Resource
 import com.janettha.navigationdrawerexample.core.util.TextResource
-import com.janettha.navigationdrawerexample.data.PokemonEntity
-import com.janettha.navigationdrawerexample.domain.repository.PokemonListRepository
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import com.janettha.navigationdrawerexample.data.datasources.web.model.Request
+import com.janettha.navigationdrawerexample.domain.model.Pokemon
+import com.janettha.navigationdrawerexample.domain.repository.PokemonRepository
 
 class PokemonListUseCase(
-    private val repository: PokemonListRepository
+    //private val repository: PokemonListRepository
+    private val repository: PokemonRepository
 ) {
 
-    suspend operator fun invoke(offset: Int?, limit: Int?): Flow<Resource<PokemonEntity>> {
-        return when (val response = repository.getPokemonList(offset, limit)) {
-            is Resource.Success<*> -> {
-                flow { Resource.Success(response.data) }
-            }
-            is Resource.Error<*> -> {
-                flow { Resource.Error<PokemonEntity>(response.error!!) }
-            }
-            else -> {
-                flow { Resource.Error<String>(TextResource.unknownError()) }
-            }
+    //suspend operator fun invoke(): Flow<PagingData<Result>> = repository.getPokemonList()
+
+    suspend operator fun invoke(offset: Int, limit: Int): Resource<Request> {
+        val response = repository.getPokemonList(offset, limit).data
+        return if(response != null){
+            Resource.Success(response)
+        } else {
+            Resource.Error(TextResource.Resource(R.string.error_something_went_wrong))
         }
     }
 

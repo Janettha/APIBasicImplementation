@@ -1,42 +1,44 @@
 package com.janettha.navigationdrawerexample.data.datasources.web
 
-import com.janettha.navigationdrawerexample.R
+//import androidx.paging.Pager
+//import androidx.paging.PagingConfig
 import com.janettha.navigationdrawerexample.core.data.Resource
-import com.janettha.navigationdrawerexample.core.util.TextResource
 import com.janettha.navigationdrawerexample.data.datasources.web.api.WebService
 import com.janettha.navigationdrawerexample.data.datasources.web.dto.request.PokemonDetailsRequest
 import com.janettha.navigationdrawerexample.data.datasources.web.dto.request.PokemonDetailsRequest.Companion.addToBody
 import com.janettha.navigationdrawerexample.data.datasources.web.dto.response.*
-import com.janettha.navigationdrawerexample.sys.framework.retrofit_flow_adapter.ApiNoInternetException
-import com.janettha.navigationdrawerexample.sys.framework.retrofit_flow_adapter.ApiNullBodyException
-import com.janettha.navigationdrawerexample.sys.framework.retrofit_flow_adapter.ApiServerException
+import com.janettha.navigationdrawerexample.domain.repository.paginaado
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flow
 
 class PokemonRemote (
     private val webService: WebService
 ) {
-    fun downloadPokemonList(
+    suspend fun downloadPokemonList(
         request: PokemonDetailsRequest
     ): Flow<Resource<GetPokemonListDtoResponse>> {
         val params = HashMap<String, Any>()
         params.addToBody(request)
 
-        return webService.getPokemonList(params).map { response ->
-            Resource.Success(response.data)
-        }.catch {
-            when(it) {
-                is ApiNoInternetException -> Resource.Error<TextResource.Resource>(
-                    TextResource.Resource(R.string.error_could_not_reach_server)
-                )
-                is ApiServerException -> Resource.Error<TextResource.Resource>(
-                    TextResource.Resource(R.string.error_could_not_reach_server)
-                )
-                is ApiNullBodyException -> Resource.Error<TextResource.Resource>(
-                    TextResource.Resource(R.string.error_something_went_wrong)
-                )
-            }
+        val response = webService.getPokemonListA(params)
+
+        if (response.count > 1){
+            println("ME ABURRo")
+        }
+
+        return flow {
+            GetPokemonListDtoResponse(1,"2","1", listOf(ItemPokemon("name","url")))
         }
     }
+
+    /*fun downloadPokemonList() = Pager(
+        config = PagingConfig(
+            enablePlaceholders = false,
+            pageSize = 20
+        ),
+        pagingSourceFactory = {
+            paginaado(webService)
+        }
+    ).flow*/
+
 }
