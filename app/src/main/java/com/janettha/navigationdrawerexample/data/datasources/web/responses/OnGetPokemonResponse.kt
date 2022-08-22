@@ -3,34 +3,35 @@ package com.janettha.navigationdrawerexample.data.datasources.web.responses
 import android.os.Parcelable
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
-import kotlinx.android.parcel.IgnoredOnParcel
-import kotlinx.android.parcel.Parcelize
+import com.janettha.navigationdrawerexample.domain.model.Pokemon
+import com.janettha.navigationdrawerexample.domain.model.PokemonResult
+import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class OnGetPokemonResponse(
-    @SerializedName("count")
     @Expose
     val count: Int?,
-    @SerializedName("next")
     @Expose
-    val next: String?,
-    @SerializedName("previous")
+    val next: String? = "",
     @Expose
-    val previous: String?,
-    @SerializedName("results")
+    val previous: String? = "",
     @Expose
-    @IgnoredOnParcel
     val results: List<ItemPokemon>?
 ) : Parcelable {
 
     @Parcelize
     data class ItemPokemon(
-        @SerializedName("name")
         @Expose
         val name: String?,
-        @SerializedName("url")
         @Expose
         val url: String?
     ) : Parcelable
 
+}
+
+fun OnGetPokemonResponse.toPokemonListResponse(
+): Pokemon {
+    return Pokemon(
+        this.results?.map { it -> PokemonResult(it.name!!, it.url!!) }
+    )
 }

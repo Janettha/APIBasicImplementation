@@ -1,6 +1,5 @@
 package com.janettha.navigationdrawerexample.data.datasources.web.model
 
-
 import com.google.gson.annotations.SerializedName
 
 data class Result(

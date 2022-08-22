@@ -1,13 +1,12 @@
 package com.janettha.navigationdrawerexample.ui.home
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.janettha.navigationdrawerexample.core.data.Resource
-import com.janettha.navigationdrawerexample.data.datasources.web.dto.response.GetPokemonListDtoResponse
 import com.janettha.navigationdrawerexample.data.datasources.web.dto.response.ItemPokemon
+import com.janettha.navigationdrawerexample.data.datasources.web.model.Result
 import com.janettha.navigationdrawerexample.domain.use_cases.HomeUseCases
+import com.janettha.navigationdrawerexample.sys.util.reactive.SimpleEvent
+import com.janettha.navigationdrawerexample.sys.util.reactive.SingleLiveEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -15,6 +14,19 @@ import kotlinx.coroutines.launch
 class HomeViewModel(
     private val useCases: HomeUseCases
 ) : ViewModel() {
+    private val mTag = "HomeViewModel"
+
+    // region EVENTS
+    private val _onPokemonHomeFragmentEvent = SingleLiveEvent<String>()
+    val onPokemonHomeFragmentEvent : LiveData<String> get() = _onPokemonHomeFragmentEvent
+
+    fun onEvent(event: PokemonHomeFragmentEvent) {
+        when (event) {
+            is PokemonHomeFragmentEvent.OnClickPokemon -> {
+                _onPokemonHomeFragmentEvent.value = event.url
+            }
+        }
+    }
 
     private val _onPokemonListFailure = MutableSharedFlow<Unit>()
     val onPokemonListFailure = _onPokemonListFailure.asSharedFlow()
@@ -29,29 +41,48 @@ class HomeViewModel(
     val dataPokemonList = _dataPokemonList.asSharedFlow()
 
     private val _text = MutableLiveData<String>().apply {
-        value = "This is home Fragment"
+        value = "Alex"
     }
     val text: LiveData<String> = _text
 
-    fun getPokemonList() {
+    /*fun getPokemonList() {
         viewModelScope.launch(Dispatchers.IO) {
-            useCases.pokemonListUseCase(0, 20).collectLatest { resource ->
-                when(resource) {
-                    is Resource.Error -> {
-                        viewModelScope.launch(Dispatchers.IO) {
-                            _onPokemonListFailure.emit(Unit)
-                        }
+            try {
+                Log.d(mTag, "getPokemonList: init")
+                val response = useCases.pokemonListUseCase().collect() {
+                    it.map {
+                        Log.d(mTag, "getPokemonList: ${it.name} - ${it.url}}")
                     }
+                    Log.d(mTag, "getPokemonList: ${it}}")
+                }
+            } catch (e: Exception) {
+                Log.d(mTag, "getPokemonList: error: ${e.message}}")
+            }
+        }
+    }*/
 
-                    is Resource.Success -> {
-                        viewModelScope.launch(Dispatchers.IO) {
-                            if(resource.data?.next.isNullOrEmpty())
-                                _dataNextPage.emit(resource.data?.next.toString())
-                            if(resource.data?.previous.isNullOrEmpty())
-                                _dataPreviousPage.emit(resource.data?.previous.toString())
-                            if(resource.data?.results!!.isEmpty().not())
-                                _dataPokemonList.emit(resource.data.results)
-                        }
+    private var _dataPokemonResults: MediatorLiveData<List<Result>> =
+        MediatorLiveData()
+    val dataPokemonResults: LiveData<List<Result>> get() = _dataPokemonResults
+
+    //private var _eventPokemonResultsLoading = SingleLiveEvent<List<Group>>()
+    //val eventPokemonResultsLoading: LiveData<List<Group>> get() = _eventPokemonResultsLoading
+
+    private val _dataPokemonResultsFailure = SingleLiveEvent.EmptyEvent()
+    val dataPokemonResultsFailure: LiveData<Any> = SingleLiveEvent.EmptyEvent()
+
+    suspend fun getPokemonList(offset: Int = 0, limit: Int = 0) {
+
+        //mutateUIState(LiveStreamingNowStates.State.Loading)
+
+        viewModelScope.launch(Dispatchers.IO) {
+            when(val info = useCases.pokemonListUseCase(offset, limit)) {
+                is Resource.Error -> {
+                    _dataPokemonResultsFailure.callInBackground()
+                }
+                is Resource.Success -> {
+                    info.data?.also {
+                        _dataPokemonResults.postValue(it.results)
                     }
                 }
             }
